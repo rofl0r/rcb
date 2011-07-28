@@ -7,7 +7,10 @@ use Cwd 'abs_path';
 #use Data::Dump qw(dump);
 
 sub syntax {
-	die "syntax: $0 [--force --verbose] mainfile.c [-lc -lm -lncurses]\n--force will force a complete rebuild despite object file presence.";
+	die "syntax: $0 [--force --verbose --step] mainfile.c [-lc -lm -lncurses]\n" .
+	"--force will force a complete rebuild despite object file presence.\n" .
+	"--verbose will print the complete linker output\n" .
+	"--step will add one dependency after another, to help finding hidden deps\n";
 }
 
 sub expandarr {
@@ -124,6 +127,7 @@ sub scanfile {
 
 my $forcerebuild = 0;
 my $verbose = 0;
+my $step = 0;
 my $mainfile = undef;
 argscan:
 my $arg1 = shift @ARGV or syntax;
@@ -132,6 +136,9 @@ if($arg1 eq "--force") {
 	goto argscan;
 } elsif($arg1 eq "--verbose") {
 	$verbose = 1;
+	goto argscan;
+} elsif($arg1 eq "--step") {
+	$step = 1;
 	goto argscan;
 } else {
 	$mainfile = $arg1;
@@ -159,6 +166,10 @@ sub compile {
 	my ($cmdline) = @_;
 	printc "magenta", "[CC] ", $cmdline, "\n";
 	my $reslt = `$cmdline 2>&1`;
+	if($!) {
+		printc "red", "ERROR ", $!, "\n";
+		exit 1;
+	}
 	print $reslt;
 	return $reslt;
 }
@@ -209,8 +220,8 @@ my $relink = 1;
 my $rebuildflag = 0;
 my $objfail = 0;
 
-my @glob_missym;
-my @missym;
+my %glob_missym;
+my %missym;
 my %rebuilt;
 printc "blue",  "[RcB] resolving linker deps...\n";
 while(!$success) {
@@ -220,10 +231,10 @@ while(!$success) {
 		$i = 0;
 	}
 	if(!$i) {
-		@glob_missym = @missym, last unless $relink;
+		%glob_missym = %missym, last unless $relink;
 		# trying to link
-		my @missym_old = @missym;
-		@missym = ();
+		my %missym_old = %missym;
+		%missym = ();
 		my $ex = expandhash(\%obj);
 		printc "blue",  "[RcB] trying to link ...\n";
 		my $cmd = "$cc $cflags $ex $link -o $bin";
@@ -233,7 +244,7 @@ while(!$success) {
 			if(/undefined reference to [\'\`\"]{1}([\w\._]+)[\'\`\"]{1}/) {
 				my $temp = $1;
 				print if $verbose;
-				push @missym, $temp;
+				$missym{$temp} = 1;
 			} elsif(
 				/architecture of input file [\'\`\"]{1}([\w\.\/_]+)[\'\`\"]{1} is incompatible with/ ||
 				/fatal error: ([\w\.\/_]+): unsupported ELF machine number/
@@ -245,7 +256,7 @@ while(!$success) {
 				$cnd =~ s/\.o/\.c/;
 				$rebuildflag = 1;
 				$objfail = 1;
-				@missym = @missym_old;
+				%missym = %missym_old;
 				goto rebuild;
 			} elsif(
 			/collect2: ld returned 1 exit status/ ||
@@ -258,7 +269,7 @@ while(!$success) {
 				exit 1;
 			}
 		}
-		if(!scalar(@missym)) {
+		if(!scalar(keys %missym)) {
 			for(@opa) {print;}
 			$success = 1; 
 			last;
@@ -280,7 +291,7 @@ while(!$success) {
 	my %symhash;
 	my $matched = 0;
 	for(@opa) {
-		if(/[\da-fA-F]{8,16}\s+[TW]{1}\s+([\w_]+)/) {
+		if(/[\da-fA-F]{8,16}\s+[TWR]{1}\s+([\w_]+)/) {
 			my $symname = $1;
 			$symhash{$symname} = 1;
 			$matched = 1;
@@ -293,14 +304,15 @@ while(!$success) {
 	if($matched){
 		$sym{$cndo} = \%symhash;
 		my $good = 0;
-		for(@missym) {
+		for(keys %missym) {
 			if(defined($symhash{$_})) {
 				$obj{$cndo} = $i;
 				$adep[$i] = undef;
 				$relink = 1;
-				if($objfail) {
+				if($objfail || $step) {
 					$objfail = 0;
 					$i = -1;
+					printc "red", "[RcB] adding $cndo to the bunch...\n" if $step;
 				}
 				last;
 			}
@@ -312,7 +324,7 @@ while(!$success) {
 
 if(!$success) {
 	printc "red", "[RcB] failed to resolve the following symbols, check your DEP tags\n";
-	for(@glob_missym) {
+	for(keys %glob_missym) {
 		print "$_\n";
 	}
 } else {
