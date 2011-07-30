@@ -291,7 +291,7 @@ while(!$success) {
 	my %symhash;
 	my $matched = 0;
 	for(@opa) {
-		if(/[\da-fA-F]{8,16}\s+[TWR]{1}\s+([\w_]+)/) {
+		if(/[\da-fA-F]{8,16}\s+[TWRBCD]{1}\s+([\w_]+)/) {
 			my $symname = $1;
 			$symhash{$symname} = 1;
 			$matched = 1;
