@@ -7,7 +7,7 @@ use Cwd 'abs_path';
 #use Data::Dump qw(dump);
 
 sub syntax {
-	die "syntax: $0 [--force --verbose --step] mainfile.c [-lc -lm -lncurses]\n" .
+	die "syntax: $0 [--force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
 	"--force will force a complete rebuild despite object file presence.\n" .
 	"--verbose will print the complete linker output\n" .
 	"--step will add one dependency after another, to help finding hidden deps\n";
@@ -129,6 +129,7 @@ my $forcerebuild = 0;
 my $verbose = 0;
 my $step = 0;
 my $mainfile = undef;
+my $ignore_errors = 0;
 argscan:
 my $arg1 = shift @ARGV or syntax;
 if($arg1 eq "--force") {
@@ -140,9 +141,13 @@ if($arg1 eq "--force") {
 } elsif($arg1 eq "--step") {
 	$step = 1;
 	goto argscan;
+} elsif($arg1 eq "--ignore-errors") {
+	$ignore_errors = 1;
+	goto argscan;
 } else {
 	$mainfile = $arg1;
 }
+
 $mainfile = shift unless defined($mainfile);
 syntax unless defined($mainfile);
 
@@ -285,8 +290,11 @@ while(!$success) {
 	$cndo = name_wo_ext($cnd) . "o";
 	if(($forcerebuild || $rebuildflag || ! -e $cndo) && !defined($rebuilt{$cndo})) {
 		my $op = compile("$cc $cflags -c $cnd -o $cndo");
-		exit 1 if($op =~ /error:/);
-		$rebuilt{$cndo} = 1;
+		if($op =~ /error:/) {
+			exit 1 unless($ignore_errors);
+		} else {
+			$rebuilt{$cndo} = 1;
+		}
 	}
 	@opa = `$nm -g $cndo 2>&1`;
 	my %symhash;
