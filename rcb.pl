@@ -246,8 +246,9 @@ while(!$success) {
 				print if $verbose;
 				$missym{$temp} = 1;
 			} elsif(
-				/architecture of input file [\'\`\"]{1}([\w\.\/_]+)[\'\`\"]{1} is incompatible with/ ||
-				/fatal error: ([\w\.\/_]+): unsupported ELF machine number/
+				/([\/\w\._\-]+): file not recognized: File format not recognized/ ||
+				/architecture of input file [\'\`\"]{1}([\/\w\._\-]+)[\'\`\"]{1} is incompatible with/ ||
+				/fatal error: ([\/\w\._\-]+): unsupported ELF machine number/
 			) {
 				$cnd = $1;
 				$i = delete $obj{$cnd};
