@@ -7,7 +7,8 @@ use Cwd 'abs_path';
 #use Data::Dump qw(dump);
 
 sub syntax {
-	die "syntax: $0 [--force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
+	die "syntax: $0 [--new --force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
+	"--new will ignore an existing .rcb file and rescan the deps\n" .
 	"--force will force a complete rebuild despite object file presence.\n" .
 	"--verbose will print the complete linker output\n" .
 	"--step will add one dependency after another, to help finding hidden deps\n";
@@ -128,6 +129,7 @@ sub scanfile {
 my $forcerebuild = 0;
 my $verbose = 0;
 my $step = 0;
+my $ignore_rcb = 0;
 my $mainfile = undef;
 my $ignore_errors = 0;
 argscan:
@@ -137,6 +139,9 @@ if($arg1 eq "--force") {
 	goto argscan;
 } elsif($arg1 eq "--verbose") {
 	$verbose = 1;
+	goto argscan;
+} elsif($arg1 eq "--new") {
+	$ignore_rcb = 1;
 	goto argscan;
 } elsif($arg1 eq "--step") {
 	$step = 1;
@@ -187,7 +192,7 @@ my $bin = $cnd . "out";
 
 my $cfgn = name_wo_ext($mainfile) . "rcb";
 my $haveconfig = (-e $cfgn);
-if($haveconfig) {
+if($haveconfig && !$ignore_rcb) {
 	printc "blue", "[RcB] config file found. trying single compile.\n";
 	@adep = `cat $cfgn`;
 	my $cs = expandarr(@adep);
