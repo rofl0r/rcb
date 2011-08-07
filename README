@@ -1,0 +1,45 @@
+RcB - rofl0r's C builder.
+=========================
+
+builds a C file holding a main method, by checking the headers it includes for RcB tags.
+such a tag might look like
+
+//RcB: DEP "mylib/*.c"
+
+this tells RcB that the symbols defined in this header can be found in the listed C files.
+after gathering all dependencies, it starts trying to compile the main file, and analyses the
+compiler output for which dependencies are not fulfilled. 
+it then starts multiple passes in which it compiles each referenced C file into an object file,
+and scans the symbols it defines. if those match the missing ones, the file will be added to
+the list of final dependencies.
+
+finally if there are no missing deps left, it will link them all together and create a simple
+text file containing a list of the required compilation units.
+on the next invocation, it will compile the target by simply passing all required C files to 
+the compiler in one turn. this is much faster than compiling every C file on its own, and 
+allows to use the same CFLAGS on all of them, and do nice optimization stuff like -flto and
+-fwhole-program, which only work really nicely if the compiler gets all C files in exactly 
+one statement.
+
+RcB tags
+--------
+//RcB: CMD "param"
+
+"//RcB:" tells rcb that a rcb command starts here, and is treated by the C compiler as a 
+comment.
+
+currently DEP is the only command recognized by rcb. it tells rcb to add param to the 
+dependency tree.
+
+CFLAGS and co
+-------------
+RcB uses the following environment variables:
+CFLAGS
+CC
+NM
+
+linking to libraries
+--------------------
+if you need to link to a specific library, you can pass it to rcb after the name of the main
+C file. just run rcb without arguments to see a list of options.
+
