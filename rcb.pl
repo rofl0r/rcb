@@ -200,7 +200,6 @@ if($haveconfig && !$ignore_rcb) {
 	if($res =~ /undefined reference to/) {
 		printc "red", "[RcB] undefined reference[s] found, switching to scan mode\n";
 	} else {
-		print $res;
 		if($?) {
 			printc "red", "[RcB] error. exiting.\n";
 		} else {
