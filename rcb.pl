@@ -257,7 +257,8 @@ while(!$success) {
 			} elsif(
 				/([\/\w\._\-]+): file not recognized: File format not recognized/ ||
 				/architecture of input file [\'\`\"]{1}([\/\w\._\-]+)[\'\`\"]{1} is incompatible with/ ||
-				/fatal error: ([\/\w\._\-]+): unsupported ELF machine number/
+				/fatal error: ([\/\w\._\-]+): unsupported ELF machine number/ ||
+				/ld: ([\/\w\._\-]+): Relocations in generic ELF/
 			) {
 				$cnd = $1;
 				$i = delete $obj{$cnd};
