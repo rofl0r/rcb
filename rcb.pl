@@ -6,6 +6,8 @@ use File::Basename;
 use Cwd 'abs_path';
 #use Data::Dump qw(dump);
 
+my $this_path = abs_path();
+
 sub syntax {
 	die "syntax: $0 [--new --force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
 	"--new will ignore an existing .rcb file and rescan the deps\n" .
@@ -82,10 +84,41 @@ sub scandep_doit {
 	}
 }
 
+sub make_relative {
+	my ($basepath, $relpath) = @_;
+	#print "$basepath ::: $relpath\n";
+	die "both path's must start with /" if(substr($basepath, 0, 1) ne "/" || substr($relpath, 0, 1) ne "/");
+	$basepath .= "/" if($basepath !~ /\/$/ && -d $basepath);
+	$relpath .= "/" if($relpath !~ /\/$/ && -d $relpath);
+	my $l = 0;
+	my $l2 = 0;
+	my $sl = 0;
+	$l++ while(substr($basepath, $l, 1) eq substr($relpath, $l, 1));
+	if($l != 0) {
+		$l-- while(substr($basepath, $l, 1) ne "/");
+	}
+        $l++ if substr($relpath, $l, 1) eq "/";
+	my $res = substr($relpath, $l);
+	$l2 = $l;
+	while($l2 < length($basepath)) {
+		$sl++ if substr($basepath, $l2, 1) eq "/";
+		$l2++;
+	}
+	my $i;
+	for ($i = 0; $i < $sl; $i++) {
+		$res = "../" . $res;
+	}
+	return $res;
+}
+
+
 sub scandep {
 	my ($self, $path, $tf) = @_;
 	my $absolute = substr($tf, 0, 1) eq "/";
 	my $nf = $absolute ? $tf : abs_path($path . "/" . $tf);
+	if ($nf =~ /^\// && $nf !~ /\.h$/) {
+		$nf = make_relative($this_path, $nf);
+	}
 	die "problem processing $self, $path, $tf" if(!defined($nf));
 	if($nf =~ /\*/) {
 		my @deps = glob($nf);
