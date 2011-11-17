@@ -115,7 +115,11 @@ sub make_relative {
 sub scandep {
 	my ($self, $path, $tf) = @_;
 	my $absolute = substr($tf, 0, 1) eq "/";
+	
 	my $nf = $absolute ? $tf : abs_path($path . "/" . $tf);
+	printc("red", "[RcB] warning: $tf not found, continuing...\n"), return if !defined($nf);
+
+	
 	if ($nf =~ /^\// && $nf !~ /\.h$/) {
 		$nf = make_relative($this_path, $nf);
 	}
