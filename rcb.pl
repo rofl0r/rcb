@@ -12,7 +12,7 @@ sub syntax {
 	die "syntax: $0 [--new --force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
 	"--new will ignore an existing .rcb file and rescan the deps\n" .
 	"--force will force a complete rebuild despite object file presence.\n" .
-	"--verbose will print the complete linker output\n" .
+	"--verbose will print the complete linker output and other info\n" .
 	"--step will add one dependency after another, to help finding hidden deps\n";
 }
 
@@ -134,6 +134,13 @@ sub scandep {
 	}
 }
 
+my $forcerebuild = 0;
+my $verbose = 0;
+my $step = 0;
+my $ignore_rcb = 0;
+my $mainfile = undef;
+my $ignore_errors = 0;
+
 sub scanfile {
 	my ($path, $file) = @_;
 	my $fp;
@@ -149,6 +156,7 @@ sub scanfile {
 			my $arg = $2;
 			if($command eq "DEP") {
 				$tf = $arg;
+				print "found RcB DEP $tf : $self\n" if $verbose;
 				scandep($self, $path, $tf);
 			}
 		} elsif($line =~ /^\s*#\s*include\s+\"([\w\.\/_\-]+?)\"/) {
@@ -163,12 +171,6 @@ sub scanfile {
 	push @adep, $self if $file =~ /[\w_-]+\.[c]{1}$/; #only add .c files to deps...
 }
 
-my $forcerebuild = 0;
-my $verbose = 0;
-my $step = 0;
-my $ignore_rcb = 0;
-my $mainfile = undef;
-my $ignore_errors = 0;
 argscan:
 my $arg1 = shift @ARGV or syntax;
 if($arg1 eq "--force") {
