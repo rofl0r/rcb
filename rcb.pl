@@ -134,6 +134,7 @@ sub scandep {
 	}
 }
 
+my $link = "";
 my $forcerebuild = 0;
 my $verbose = 0;
 my $step = 0;
@@ -158,6 +159,9 @@ sub scanfile {
 				$tf = $arg;
 				print "found RcB DEP $tf : $self\n" if $verbose;
 				scandep($self, $path, $tf);
+			} elsif ($command eq "LINK") {
+				print "found RcB LINK $arg\n" if $verbose;
+				$link .= $arg . " ";
 			}
 		} elsif($line =~ /^\s*#\s*include\s+\"([\w\.\/_\-]+?)\"/) {
 			$tf = $1;
@@ -223,7 +227,7 @@ sub compile {
 	return $reslt;
 }
 
-my $link = expandarr(@ARGV);
+$link = expandarr(@ARGV) . " ";
 
 my $cnd = name_wo_ext($mainfile);
 my $cndo = $cnd . "o";
@@ -233,8 +237,11 @@ my $cfgn = name_wo_ext($mainfile) . "rcb";
 my $haveconfig = (-e $cfgn);
 if($haveconfig && !$ignore_rcb) {
 	printc "blue", "[RcB] config file found. trying single compile.\n";
-	@adep = `cat $cfgn`;
+	@adep = `cat $cfgn | grep "^DEP " | cut -b 5-`;
+	my @rcb_links = `cat $cfgn | grep "^LINK" | cut -b 6-`;
 	my $cs = expandarr(@adep);
+	my $ls = expandarr(@rcb_links);
+	$link = $ls if (defined($ls) && $ls ne "");
 	my $res = compile("$cc $cflags $cs $link -o $bin");
 	if($res =~ /undefined reference to/) {
 		printc "red", "[RcB] undefined reference[s] found, switching to scan mode\n";
@@ -386,7 +393,8 @@ if(!$success) {
 	my $fh;
 	open($fh, ">", $cfgn);
 	for(keys %obj) {
-		print { $fh } name_wo_ext($_), "c\n";
+		print { $fh } "DEP ", name_wo_ext($_), "c\n";
 	}
+	print { $fh } "LINK ", $link, "\n" if($link);
 	close($fh);
 }
