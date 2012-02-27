@@ -25,11 +25,11 @@ RcB tags
 --------
 //RcB: CMD "param"
 
-"//RcB:" tells rcb that a rcb command starts here, and is treated by the C compiler as a 
-comment.
+"//RcB:" tells rcb that a rcb command starts here, and is treated by the
+C compiler as a comment.
 
-currently DEP is the only command recognized by rcb. it tells rcb to add param to the 
-dependency tree.
+currently DEP is the only command recognized by rcb. 
+it tells rcb to add param to the dependency tree.
 
 CFLAGS and co
 -------------
@@ -40,6 +40,26 @@ NM
 
 linking to libraries
 --------------------
-if you need to link to a specific library, you can pass it to rcb after the name of the main
-C file. just run rcb without arguments to see a list of options.
+if you need to link to a specific library, you can pass it to rcb after the 
+name of the main C file. 
+just run rcb without arguments to see a list of options.
 
+
+gotcha's
+--------
+* by default, rcb uses existing .o files to speed up the process.
+  however this can lead to some newly added symbols not being found.
+  in this case use --force to force rcb to recompile everything.
+
+* after renaming or moving stuff around, the information in the .rcb file gets
+  invalid. use --new to force rcb to remove the rcb file and recollect dependency
+  information.
+
+* after changing some defines, it is advisably to run rcb twice with --force.
+  this will make sure that the C files will be thrown at the compiler instead
+  of the object files which may contain/lack (un)wanted code from previous
+  compilations.
+
+so the rule of thumb is, whenever you run into problems
+- check that an rcb tag for your .c file exists
+- run rcb with --new and --force, followed by a second run with --force only.
