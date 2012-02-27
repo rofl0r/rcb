@@ -1,17 +1,22 @@
 RcB - rofl0r's C builder.
 =========================
 
-builds a C file holding a main method, by checking the headers it includes for RcB tags.
+builds a C file holding a main method, by checking the headers it includes for
+RcB tags.
 such a tag might look like
 
 //RcB: DEP "mylib/*.c"
+//RcB: LINK "-lSDL"
 
-this tells RcB that the symbols defined in this header can be found in the listed C files.
-after gathering all dependencies, it starts trying to compile the main file, and analyses the
-compiler output for which dependencies are not fulfilled. 
-it then starts multiple passes in which it compiles each referenced C file into an object file,
-and scans the symbols it defines. if those match the missing ones, the file will be added to
-the list of final dependencies.
+the first one tells RcB that the symbols defined in this header can be found
+in the listed C files.
+after gathering all dependencies, it starts trying to compile the main file, 
+and analyses the compiler output for which dependencies are not fulfilled. 
+
+it then starts multiple passes in which it compiles each referenced C file 
+into an object file, and scans the symbols it defines. 
+if those match the missing ones, the file will be added to the list of final
+dependencies.
 
 finally if there are no missing deps left, it will link them all together and create a simple
 text file containing a list of the required compilation units.
@@ -28,8 +33,11 @@ RcB tags
 "//RcB:" tells rcb that a rcb command starts here, and is treated by the
 C compiler as a comment.
 
-currently DEP is the only command recognized by rcb. 
-it tells rcb to add param to the dependency tree.
+currently implemented commands:
+DEP    tells rcb to add param to the dependency tree.
+LINK   tells rcb to pass param to the compiler (i.e. "-lSDL").
+       it is advisable to use this only in your main .c file.
+      
 
 CFLAGS and co
 -------------
