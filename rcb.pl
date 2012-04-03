@@ -141,6 +141,7 @@ my $step = 0;
 my $ignore_rcb = 0;
 my $mainfile = undef;
 my $ignore_errors = 0;
+my $debug_cflags = 0;
 
 sub scanfile {
 	my ($path, $file) = @_;
@@ -192,6 +193,9 @@ if($arg1 eq "--force") {
 } elsif($arg1 eq "--ignore-errors") {
 	$ignore_errors = 1;
 	goto argscan;
+} elsif($arg1 eq "--debug") {
+	$debug_cflags = 1;
+	goto argscan;
 } else {
 	$mainfile = $arg1;
 }
@@ -206,7 +210,10 @@ if (defined($ENV{CC})) {
 	$cc = "cc";
 	printc "blue", "[RcB] \$CC not set, defaulting to cc\n";
 }
+
 my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
+$cflags .= $debug_cflags ? "-O0 -g" : "";
+
 my $nm;
 if (defined($ENV{NM})) {
 	$nm = $ENV{NM};
