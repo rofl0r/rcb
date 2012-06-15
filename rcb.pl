@@ -7,12 +7,14 @@ use Cwd 'abs_path';
 #use Data::Dump qw(dump);
 
 my $this_path = abs_path();
+my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
 
 sub syntax {
 	die "syntax: $0 [--new --force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
 	"--new will ignore an existing .rcb file and rescan the deps\n" .
 	"--force will force a complete rebuild despite object file presence.\n" .
 	"--verbose will print the complete linker output and other info\n" .
+	"--debug adds -O0 -g to CFLAGS\n" .
 	"--step will add one dependency after another, to help finding hidden deps\n";
 }
 
@@ -148,24 +150,34 @@ sub scanfile {
 	my $fp;
 	my $self = $path . "/" . $file;
 	my $tf = "";
+	my $skipinclude = 0;
 
 	$hdep{$self} = 1;
 	open($fp, "<", $self) or die "could not open file $self: $!";
 	while(<$fp>) {
 		my $line = $_;
-		if ($line =~ /^\/\/RcB: (\w{3,6}) \"(.+?)\"/) {
+		if ($line =~ /^\/\/RcB: (\w{3,7}) \"(.+?)\"/) {
 			my $command = $1;
 			my $arg = $2;
 			if($command eq "DEP") {
 				$tf = $arg;
-				print "found RcB DEP $tf : $self\n" if $verbose;
+				print "found RcB DEP $self -> $tf\n" if $verbose;
 				scandep($self, $path, $tf);
 			} elsif ($command eq "LINK") {
-				print "found RcB LINK $arg\n" if $verbose;
+				print "found RcB LINK $self -> $arg\n" if $verbose;
 				$link .= $arg . " ";
+			} elsif ($command eq "SKIPON") {
+				$skipinclude = 1 if $cflags =~ /-D\Q$arg\E/;
+			} elsif ($command eq "SKIPOFF") {
+				$skipinclude = 0 if $cflags =~ /-D\Q$arg\E/;
 			}
 		} elsif($line =~ /^\s*#\s*include\s+\"([\w\.\/_\-]+?)\"/) {
 			$tf = $1;
+			if($skipinclude) {
+				print "skipping $self -> $tf\n" if $verbose;
+				next;
+			}
+			print "found header ref $self -> $tf\n" if $verbose;
 			scandep($self, $path, $tf);
 		} else {
 
@@ -211,8 +223,7 @@ if (defined($ENV{CC})) {
 	printc "blue", "[RcB] \$CC not set, defaulting to cc\n";
 }
 
-my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
-$cflags .= $debug_cflags ? "-O0 -g" : "";
+$cflags .= $debug_cflags ? " -O0 -g" : "";
 
 my $nm;
 if (defined($ENV{NM})) {
