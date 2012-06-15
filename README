@@ -18,13 +18,14 @@ into an object file, and scans the symbols it defines.
 if those match the missing ones, the file will be added to the list of final
 dependencies.
 
-finally if there are no missing deps left, it will link them all together and create a simple
-text file containing a list of the required compilation units.
-on the next invocation, it will compile the target by simply passing all required C files to 
-the compiler in one turn. this is much faster than compiling every C file on its own, and 
-allows to use the same CFLAGS on all of them, and do nice optimization stuff like -flto and
--fwhole-program, which only work really nicely if the compiler gets all C files in exactly 
-one statement.
+finally if there are no missing deps left, it will link them all together and
+create a simple text file containing a list of the required compilation units.
+on the next invocation, it will compile the target by simply passing all
+required C files to the compiler in one turn.
+this is much faster than compiling every C file on its own, and allows to use
+the same CFLAGS on all of them, and do nice optimization stuff like 
+-flto -fwhole-program, which only work really nicely if the compiler gets all
+C files in exactly one statement.
 
 RcB tags
 --------
@@ -34,14 +35,23 @@ RcB tags
 C compiler as a comment.
 
 currently implemented commands:
-DEP    tells rcb to add param to the dependency tree.
-LINK   tells rcb to pass param to the compiler (i.e. "-lSDL").
-       it is advisable to use this only in your main .c file.
+DEP     tells rcb to add param to the dependency tree.
+LINK    tells rcb to pass param to the compiler (i.e. "-lSDL").
+        it is advisable to use this only in your main .c file.
+SKIPON  skip #include directives until SKIPOFF if param can be found inside
+        CFLAGS.
+        this is necessary to exclude headers that are conditionally used,
+        and pull in more deps.
+        necessary to workaround the fact that rcb doesn't have any means of
+        preprocessing C code.
+SKIPOFF turn off skipping of #include directives if param can be found inside
+        CFLAGS.
       
 
 CFLAGS and co
 -------------
 RcB uses the following environment variables:
+RCBFLAGS (can contain one or more rcb command line arguments)
 CFLAGS
 CC
 NM
@@ -52,6 +62,10 @@ if you need to link to a specific library, you can pass it to rcb after the
 name of the main C file. 
 just run rcb without arguments to see a list of options.
 
+parallel builds
+---------------
+on my wishlist, but currently not possible.
+i usually build stuff with ~50 C files, which takes about 10-15 secs.
 
 gotcha's
 --------
@@ -60,10 +74,17 @@ gotcha's
   in this case use --force to force rcb to recompile everything.
 
 * after renaming or moving stuff around, the information in the .rcb file gets
-  invalid. use --new to force rcb to remove the rcb file and recollect dependency
-  information.
+  invalid. use --new to force rcb to remove the rcb file and recollect
+  dependency information.
+  NOTE:
+  it is much safer to use --new than starting to delete .rcb files manually.
+  if you're in a rush you might erase your c file instead of the rcb file
+  accidentally.
 
 * after changing some defines, it is advisably to run rcb twice with --force.
+  the first run will recompile all c files to object files (so that the symbols
+  can be checked) and link them together,
+  the second one will then use all the necessary C files for a clean recompile.
   this will make sure that the C files will be thrown at the compiler instead
   of the object files which may contain/lack (un)wanted code from previous
   compilations.
@@ -71,3 +92,5 @@ gotcha's
 so the rule of thumb is, whenever you run into problems
 - check that an rcb tag for your .c file exists
 - run rcb with --new and --force, followed by a second run with --force only.
+- if the problem persists, add --verbose and inspect which dependendiecs get
+  pulled in from where.
