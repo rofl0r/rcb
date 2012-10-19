@@ -46,6 +46,14 @@ sub name_wo_ext {
 	return "";
 }
 
+sub file_ext {
+	my $x = shift;
+	my $l = length($x);
+	$l-- while($l && substr($x, $l, 1) ne ".");
+	return substr($x, $l) if($l);
+	return "";
+}
+
 my $colors = {
 	"default" => 98,
 	"white" => 97,
@@ -160,10 +168,12 @@ sub scanfile {
 			my $command = $1;
 			my $arg = $2;
 			if($command eq "DEP") {
+				next if $skipinclude;
 				$tf = $arg;
 				print "found RcB DEP $self -> $tf\n" if $verbose;
 				scandep($self, $path, $tf);
 			} elsif ($command eq "LINK") {
+				next if $skipinclude;
 				print "found RcB LINK $self -> $arg\n" if $verbose;
 				$link .= $arg . " ";
 			} elsif ($command eq "SKIPON") {
@@ -173,6 +183,7 @@ sub scanfile {
 			}
 		} elsif($line =~ /^\s*#\s*include\s+\"([\w\.\/_\-]+?)\"/) {
 			$tf = $1;
+			next if file_ext($tf) eq ".c";
 			if($skipinclude) {
 				print "skipping $self -> $tf\n" if $verbose;
 				next;
