@@ -346,13 +346,12 @@ while(!$success) {
 				goto rebuild;
 			} elsif(
 			/collect2: ld returned 1 exit status/ ||
+			/collect2: error: ld returned 1 exit status/ ||
 			/In function [\'\`\"]{1}[\w_]+[\'\`\"]{1}:/ ||
 			/more undefined references to/
 			) {
 			} else {
-				printc "red", "[RcB] FATAL: unexpected linker output!\n";
-				print;
-				exit 1;
+				printc "red", "[RcB] Warning: unexpected linker output!\n";
 			}
 		}
 		if(!scalar(keys %missym)) {
