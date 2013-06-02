@@ -14,7 +14,7 @@ sub syntax {
 	"--new will ignore an existing .rcb file and rescan the deps\n" .
 	"--force will force a complete rebuild despite object file presence.\n" .
 	"--verbose will print the complete linker output and other info\n" .
-	"--debug adds -O0 -g to CFLAGS\n" .
+	"--debug adds -O0 -g3 to CFLAGS\n" .
 	"--step will add one dependency after another, to help finding hidden deps\n";
 }
 
@@ -234,7 +234,7 @@ if (defined($ENV{CC})) {
 	printc "blue", "[RcB] \$CC not set, defaulting to cc\n";
 }
 
-$cflags .= $debug_cflags ? " -O0 -g" : "";
+$cflags .= $debug_cflags ? " -O0 -g3" : "";
 
 my $nm;
 if (defined($ENV{NM})) {
