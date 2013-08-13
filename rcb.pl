@@ -97,6 +97,7 @@ sub printc {
 
 sub scandep_doit {
 	my ($self, $na) = @_;
+	my $is_header = ($na =~ /\.h$/);
 	for my $i (@includedirs) {
 		my $delim = ($i eq "") ? "" : "/";
 		my $nf = $i . $delim . $na;
@@ -110,9 +111,10 @@ sub scandep_doit {
 		} else {
 			return;
 		}
+		last unless $is_header;
 	}
 	printc("red", "failed to find dependency $na referenced from $self!\n");
-	die unless $na =~ /\.h$/;
+	die unless $is_header;
 }
 
 sub make_relative {
