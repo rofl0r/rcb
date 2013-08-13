@@ -70,6 +70,21 @@ my $colstr = "\033[%dm";
 
 my %hdep;
 my @adep;
+my @includedirs;
+
+sub process_include_dirs {
+	my @p = split / /, $cflags;
+	my $i;
+	push @includedirs, ""; # empty entry for the first iteration in scandep_doit
+	for($i = 0; $i < scalar(@p); $i++) {
+		if($p[$i] eq "-I") {
+			$i++;
+			push @includedirs, $p[$i];
+		} elsif($p[$i] =~ /^\-I(.+)/) {
+			push @includedirs, $1;
+		}
+	}
+}
 
 sub printc {
 	my $color = shift;
@@ -81,17 +96,23 @@ sub printc {
 }
 
 sub scandep_doit {
-	my ($self, $nf) = @_;
-	my $np = dirname($nf);
-	my $nb = basename($nf);
-	if(!defined($hdep{$nf})) {
-		if(! -e $nf) {
-			printc("red", "failed to find dependency $nf referenced from $self!\n");
-			die unless $nf =~ /\.h$/;
+	my ($self, $na) = @_;
+	for my $i (@includedirs) {
+		my $delim = ($i eq "") ? "" : "/";
+		my $nf = $i . $delim . $na;
+		my $np = dirname($nf);
+		my $nb = basename($nf);
+		if(!defined($hdep{$nf})) {
+			if(-e $nf) {
+				scanfile($np, $nb);
+				return;
+			}
 		} else {
-			scanfile($np, $nb);
+			return;
 		}
 	}
+	printc("red", "failed to find dependency $na referenced from $self!\n");
+	die unless $na =~ /\.h$/;
 }
 
 sub make_relative {
@@ -233,6 +254,8 @@ if (defined($ENV{CC})) {
 	$cc = "cc";
 	printc "blue", "[RcB] \$CC not set, defaulting to cc\n";
 }
+
+process_include_dirs();
 
 $cflags .= $debug_cflags ? " -O0 -g3" : "";
 
