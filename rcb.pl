@@ -95,6 +95,8 @@ sub printc {
 	printf $colstr, $colors->{"end"};
 }
 
+my $ignore_errors = 0;
+
 sub scandep_doit {
 	my ($self, $na) = @_;
 	my $is_header = ($na =~ /\.h$/);
@@ -114,7 +116,7 @@ sub scandep_doit {
 		last unless $is_header;
 	}
 	printc("red", "failed to find dependency $na referenced from $self!\n");
-	die unless $is_header;
+	die unless $is_header || $ignore_errors;
 }
 
 sub make_relative {
@@ -177,7 +179,6 @@ my $verbose = 0;
 my $step = 0;
 my $ignore_rcb = 0;
 my $mainfile = undef;
-my $ignore_errors = 0;
 my $debug_cflags = 0;
 
 sub scanfile {
