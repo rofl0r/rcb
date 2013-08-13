@@ -147,13 +147,17 @@ sub make_relative {
 
 sub scandep {
 	my ($self, $path, $tf) = @_;
+	my $is_header = ($tf =~ /\.h$/);
 	my $absolute = substr($tf, 0, 1) eq "/";
 
-	my $nf = $absolute ? $tf : abs_path($path) . "/" . $tf;
+	my $fullpath = abs_path($path) . "/" . $tf;
+	# the stuff in the || () part is to pass headers which are in the CFLAGS include path
+	# unmodified to scandep_doit
+	my $nf = $absolute || ($is_header && $tf !~ /^\./ && ! -e $fullpath) ? $tf : $fullpath;
 	printc("red", "[RcB] warning: $tf not found, continuing...\n"), return if !defined($nf);
 
 	
-	if ($nf =~ /^\// && $nf !~ /\.h$/) {
+	if ($nf =~ /^\// && ! $is_header) {
 		$nf = make_relative($this_path, $nf);
 	}
 	die "problem processing $self, $path, $tf" if(!defined($nf));
