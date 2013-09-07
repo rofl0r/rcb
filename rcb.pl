@@ -105,7 +105,7 @@ sub scandep_doit {
 		my $nf = $i . $delim . $na;
 		my $np = dirname($nf);
 		my $nb = basename($nf);
-		if(!defined($hdep{$nf})) {
+		if(!defined($hdep{abs_path($nf)})) {
 			if(-e $nf) {
 				scanfile($np, $nb);
 				return;
@@ -188,7 +188,7 @@ sub scanfile {
 	my $tf = "";
 	my $skipinclude = 0;
 
-	$hdep{$self} = 1;
+	$hdep{abs_path($self)} = 1;
 	open($fp, "<", $self) or die "could not open file $self: $!";
 	while(<$fp>) {
 		my $line = $_;
