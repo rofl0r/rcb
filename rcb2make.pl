@@ -33,7 +33,7 @@ sub make_list {
 
 my $mak_template = << 'EOF';
 prefix = /usr/local
-bindir = /usr/local/bin
+bindir = $(prefix)/bin
 
 PROG = #PROG#
 SRCS = #SRCS#
