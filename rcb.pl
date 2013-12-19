@@ -205,9 +205,13 @@ sub scanfile {
 				print "found RcB LINK $self -> $arg\n" if $verbose;
 				$link .= $arg . " ";
 			} elsif ($command eq "SKIPON") {
-				$skipinclude = 1 if $cflags =~ /-D\Q$arg\E/;
+				$skipinclude++ if $cflags =~ /-D\Q$arg\E/;
 			} elsif ($command eq "SKIPOFF") {
-				$skipinclude = 0 if $cflags =~ /-D\Q$arg\E/;
+				$skipinclude-- if $cflags =~ /-D\Q$arg\E/;
+			} elsif ($command eq "SKIPUON") {
+				$skipinclude++ unless $cflags =~ /-D\Q$arg\E/;
+			} elsif ($command eq "SKIPUOFF") {
+				$skipinclude-- unless $cflags =~ /-D\Q$arg\E/;
 			}
 		} elsif($line =~ /^\s*#\s*include\s+\"([\w\.\/_\-]+?)\"/) {
 			$tf = $1;

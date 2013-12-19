@@ -46,6 +46,10 @@ SKIPON  skip #include directives until SKIPOFF if param can be found inside
         preprocessing C code.
 SKIPOFF turn off skipping of #include directives if param can be found inside
         CFLAGS.
+SKIPUON same as SKIPON, but applies to all CFLAGS that are *NOT* found
+        on the command line.
+SKIPUOFF same as SKIPOFF, but applies to all CFLAGS that are *NOT* found
+        on the command line.
       
 
 CFLAGS and co
