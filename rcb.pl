@@ -15,7 +15,9 @@ sub syntax {
 	"--force will force a complete rebuild despite object file presence.\n" .
 	"--verbose will print the complete linker output and other info\n" .
 	"--debug adds -O0 -g3 to CFLAGS\n" .
-	"--step will add one dependency after another, to help finding hidden deps\n";
+	"--step will add one dependency after another, to help finding hidden deps\n" .
+	"--hdrsrc=ulz:../lib/include replace <ulz> in header inclusion with \"../lib/include\"\n" .
+	"  this redirects rcb header lookup so rcb tags can point to the right dir.\n";
 }
 
 sub expandarr {
@@ -180,6 +182,7 @@ my $step = 0;
 my $ignore_rcb = 0;
 my $mainfile = undef;
 my $debug_cflags = 0;
+my %hdrsubsts;
 
 sub scanfile {
 	my ($path, $file) = @_;
@@ -222,6 +225,20 @@ sub scanfile {
 			}
 			print "found header ref $self -> $tf\n" if $verbose;
 			scandep($self, $path, $tf);
+		} elsif($line =~ /^\s*#\s*include\s+<([\w\.\/_\-]+?)>/) {
+			$tf = $1;
+			for my $subst(keys %hdrsubsts) {
+				if($tf =~ /\Q$subst\E/) {
+					my $tfold = $tf;
+					$tf =~ s/\Q$subst\E/$hdrsubsts{$subst}/;
+					if($skipinclude) {
+						print "skipping $self -> $tf\n" if $verbose;
+						next;
+					}
+					print "applied header subst in $self: $tfold -> $tf\n" if $verbose;
+					scandep($self, $path, $tf);
+				}
+			}
 		} else {
 
 			$tf = "x";
@@ -250,6 +267,9 @@ if($arg1 eq "--force") {
 	goto argscan;
 } elsif($arg1 eq "--debug") {
 	$debug_cflags = 1;
+	goto argscan;
+} elsif($arg1 =~ /--hdrsrc=(.*?):(.*)/) {
+	$hdrsubsts{$1} = $2;
 	goto argscan;
 } else {
 	$mainfile = $arg1;
