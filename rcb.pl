@@ -9,6 +9,8 @@ use Cwd 'abs_path';
 my $this_path = abs_path();
 my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
 
+sub min { my ($a, $b) = @_; return $a < $b ? $a : $b; }
+
 sub syntax {
 	die "syntax: $0 [--new --force --verbose --step --ignore-errors] mainfile.c [-lc -lm -lncurses]\n" .
 	"--new will ignore an existing .rcb file and rescan the deps\n" .
@@ -130,8 +132,10 @@ sub make_relative {
 	my $l = 0;
 	my $l2 = 0;
 	my $sl = 0;
-	$l++ while(substr($basepath, $l, 1) eq substr($relpath, $l, 1));
+	my $min = min(length($basepath), length($relpath));
+	$l++ while($l < $min && substr($basepath, $l, 1) eq substr($relpath, $l, 1));
 	if($l != 0) {
+		$l-- if($l < $min && substr($basepath, $l, 1) eq "/");
 		$l-- while(substr($basepath, $l, 1) ne "/");
 	}
         $l++ if substr($relpath, $l, 1) eq "/";
