@@ -323,7 +323,7 @@ my $bin = $cnd . "out";
 my $cfgn = name_wo_ext($mainfile) . "rcb";
 my $haveconfig = (-e $cfgn);
 if($haveconfig && !$ignore_rcb) {
-	printc "blue", "[RcB] config file found. trying single compile.\n";
+	printc "blue", "[RcB] config file $cfgn found. trying single compile.\n";
 	@adep = `cat $cfgn | grep "^DEP " | cut -b 5-`;
 	my @rcb_links = `cat $cfgn | grep "^LINK" | cut -b 6-`;
 	my $cs = expandarr(@adep);
