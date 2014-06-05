@@ -8,6 +8,7 @@ use Cwd 'abs_path';
 
 my $this_path = abs_path();
 my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
+my $ldflags = defined($ENV{LDFLAGS}) ? $ENV{LDFLAGS} : "";
 
 sub min { my ($a, $b) = @_; return $a < $b ? $a : $b; }
 
@@ -329,7 +330,7 @@ if($haveconfig && !$ignore_rcb) {
 	my $cs = expandarr(@adep);
 	my $ls = expandarr(@rcb_links);
 	$link = $ls if (defined($ls) && $ls ne "");
-	my $res = compile("$cc $cflags $cs $link -o $bin");
+	my $res = compile("$cc $cflags $cs $link -o $bin $ldflags");
 	if($res =~ /undefined reference to/) {
 		printc "red", "[RcB] undefined reference[s] found, switching to scan mode\n";
 	} else {
@@ -379,7 +380,7 @@ while(!$success) {
 		%missym = ();
 		my $ex = expandhash(\%obj);
 		printc "blue",  "[RcB] trying to link ...\n";
-		my $cmd = "$cc $cflags $ex $link -o $bin";
+		my $cmd = "$cc $cflags $ex $link -o $bin $ldflags";
 		printc "cyan", "[LD] ", $cmd, "\n";
 		@opa = `$cmd 2>&1`;
 		for(@opa) {
