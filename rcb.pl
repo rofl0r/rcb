@@ -8,6 +8,7 @@ use Cwd 'abs_path';
 
 # we only process english messages
 $ENV{LC_MESSAGES} = "C";
+$ENV{LC_ALL} = "C";
 
 my $this_path = abs_path();
 my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
