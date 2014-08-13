@@ -40,7 +40,7 @@ SRCS = #SRCS#
 LIBS = #LIBS#
 OBJS = $(SRCS:.c=.o)
 
-CFLAGS += -Wall -D_GNU_SOURCE
+CFLAGS += -Wall -D_GNU_SOURCE -std=c99
 
 -include config.mak
 
