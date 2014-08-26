@@ -7,6 +7,7 @@ such a tag might look like
 
 //RcB: DEP "mylib/*.c"
 //RcB: LINK "-lSDL"
+//RcB: CFLAGS "-std=c99"
 
 the first one tells RcB that the symbols defined in this header can be found
 in the listed C files.
@@ -38,6 +39,7 @@ currently implemented commands:
 DEP     tells rcb to add param to the dependency tree.
 LINK    tells rcb to pass param to the compiler (i.e. "-lSDL").
         it is advisable to use this only in your main .c file.
+CFLAGS  tells rcb to add param to CFLAGS used for compilation.
 SKIPON  skip #include directives until SKIPOFF if param can be found inside
         CFLAGS.
         this is necessary to exclude headers that are conditionally used,

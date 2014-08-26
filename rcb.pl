@@ -216,6 +216,10 @@ sub scanfile {
 				next if $skipinclude;
 				print "found RcB LINK $self -> $arg\n" if $verbose;
 				$link .= $arg . " ";
+			} elsif ($command eq "CFLAGS") {
+				next if $skipinclude;
+				print "found RcB CFLAGS $self -> $arg\n" if $verbose;
+				$cflags .= $arg . " ";
 			} elsif ($command eq "SKIPON") {
 				$skipinclude++ if $cflags =~ /-D\Q$arg\E/;
 			} elsif ($command eq "SKIPOFF") {
