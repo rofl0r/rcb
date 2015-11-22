@@ -423,6 +423,7 @@ while(!$success) {
 			) {
 			} else {
 				printc "red", "[RcB] Warning: unexpected linker output!\n";
+				print;
 			}
 		}
 		if(!scalar(keys %missym)) {
