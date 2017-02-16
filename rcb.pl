@@ -157,6 +157,7 @@ sub make_relative {
 	return $res;
 }
 
+my $verbose = 0;
 
 sub scandep {
 	my ($self, $path, $tf) = @_;
@@ -164,12 +165,12 @@ sub scandep {
 	my $absolute = substr($tf, 0, 1) eq "/";
 
 	my $fullpath = abs_path($path) . "/" . $tf;
+	print "scanning $fullpath...\n" if $verbose;
 	# the stuff in the || () part is to pass headers which are in the CFLAGS include path
 	# unmodified to scandep_doit
 	my $nf = $absolute || ($is_header && $tf !~ /^\./ && ! -e $fullpath) ? $tf : $fullpath;
 	printc("red", "[RcB] warning: $tf not found, continuing...\n"), return if !defined($nf);
 
-	
 	if ($nf =~ /^\// && ! $is_header) {
 		$nf = make_relative($this_path, $nf);
 	}
@@ -187,7 +188,6 @@ sub scandep {
 my $link = "";
 my $rcb_cflags = "";
 my $forcerebuild = 0;
-my $verbose = 0;
 my $step = 0;
 my $ignore_rcb = 0;
 my $mainfile = undef;
@@ -201,6 +201,7 @@ sub scanfile {
 	my $tf = "";
 	my $skipinclude = 0;
 
+	printf "scanfile: %s\n", abs_path($self) if($verbose);
 	$hdep{abs_path($self)} = 1;
 	open($fp, "<", $self) or die "could not open file $self: $!";
 	while(<$fp>) {
