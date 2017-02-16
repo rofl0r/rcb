@@ -10,7 +10,7 @@ use Cwd 'abs_path';
 $ENV{LC_MESSAGES} = "C";
 $ENV{LC_ALL} = "C";
 
-my $this_path = abs_path();
+my $this_path = undef;
 my $cflags = defined($ENV{CFLAGS}) ? $ENV{CFLAGS} : "";
 my $ldflags = defined($ENV{LDFLAGS}) ? $ENV{LDFLAGS} : "";
 
@@ -292,6 +292,13 @@ if($arg1 eq "--force") {
 
 $mainfile = shift unless defined($mainfile);
 syntax unless defined($mainfile);
+my $rind;
+$rind = rindex($mainfile,'/');
+if($rind >0) {
+	chdir(substr($mainfile, 0, $rind));
+	$mainfile = substr($mainfile, $rind+1);
+}
+$this_path = abs_path();
 
 my $cc;
 if (defined($ENV{CC})) {
