@@ -351,7 +351,7 @@ if($haveconfig && !$ignore_rcb) {
 	my $cfs = expandarr(@rcb_cfgs);
 	$link = $ls if (defined($ls) && $ls ne "");
 	my $res = compile("$cc $cflags $cfs $cs $link -o $bin $ldflags");
-	if($res =~ /undefined reference to/) {
+	if($res =~ /undefined reference to/ || $res =~ /undefined symbol/) {
 		printc "red", "[RcB] undefined reference[s] found, switching to scan mode\n";
 	} else {
 		if($?) {
@@ -404,7 +404,10 @@ while(!$success) {
 		printc "cyan", "[LD] ", $cmd, "\n";
 		@opa = `$cmd 2>&1`;
 		for(@opa) {
-			if(/undefined reference to [\'\`\"]{1}([\w\._]+)[\'\`\"]{1}/) {
+			if(
+			/undefined reference to [\'\`\"]{1}([\w\._]+)[\'\`\"]{1}/ ||
+			/undefined symbol [\']{1}([\w\._]+)[\']{1}/
+			) {
 				my $temp = $1;
 				print if $verbose;
 				$missym{$temp} = 1;
