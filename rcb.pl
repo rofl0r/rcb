@@ -429,6 +429,7 @@ while(!$success) {
 			} elsif(
 			/collect2: ld returned 1 exit status/ ||
 			/collect2: error: ld returned 1 exit status/ ||
+			/error: linker command failed with exit code 1/ ||
 			/In function [\'\`\"]{1}[\w_]+[\'\`\"]{1}:/ ||
 			/more undefined references to/
 			) {
