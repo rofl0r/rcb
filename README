@@ -1,6 +1,9 @@
 RcB - rofl0r's C builder.
 =========================
 
+obsolete & archived - this program is now superseded by
+[rcb2](https://github./com/rofl0r/rcb2)
+
 builds a C file holding a main method, by checking the headers it includes for
 RcB tags.
 such a tag might look like
